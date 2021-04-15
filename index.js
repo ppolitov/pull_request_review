@@ -32,7 +32,7 @@ async function run() {
       {owner, repo, base, head});
     console.log('compare:', JSON.stringify(compare));
 
-    for (let f for compare.data.files) {
+    for (let f of compare.data.files) {
       console.log(f)
     }
 
