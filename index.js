@@ -26,13 +26,11 @@ async function getRepoFile(context, path, ref) {
 
 async function run() {
   try {
-    const branch = core.getInput('branch');
     const token = core.getInput('token');
-    const slackToken = core.getInput('slack_token');
 
     const { payload } = github.context;
     const [owner, repo] = (process.env.GITHUB_REPOSITORY || '').split('/');
-    console.log(`Inputs: branch:${branch} owner:${owner} repo:${repo}`);
+    console.log(`Inputs: owner:${owner} repo:${repo}`);
 
     console.log('Context:', JSON.stringify(github.context));
     console.log('Event:', JSON.stringify(github.event));
