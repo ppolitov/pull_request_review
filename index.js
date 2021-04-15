@@ -27,12 +27,14 @@ async function run() {
     const response = await octokit.repos.getContent(
       {owner, repo, path: 'src/CODEOWNERS', ref: github.context.ref});
     const codeowners = Buffer.from(response.data.content, 'base64').toString();
-    console.log(codeowners);
 
     const compare = await octokit.repos.compareCommits(
       {owner, repo, base, head});
-    console.log();
     console.log('compare:', JSON.stringify(compare));
+
+    for (let f for compare.data.files) {
+      console.log(f)
+    }
 
     /*
     payload.pull_request.base.ref == 'sidekick'
