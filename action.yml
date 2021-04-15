@@ -1,0 +1,12 @@
+name: 'PR Review'
+description: 'Review pull requests'
+inputs:
+  branch:
+    description: 'Base ref of pull requests'
+    required: true
+  token:
+    description: ''
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
