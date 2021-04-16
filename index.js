@@ -19,6 +19,8 @@ async function run() {
     const head = payload.pull_request.head.sha;
     const base = payload.pull_request.base.sha;
     const branch = payload.pull_request.head.ref;
+    // payload.pull_request.base.ref == 'sidekick'
+    // payload.pull_request.head.ref == 'INFRA-3075'
     console.log(`Inputs: pull:${pull_number} owner:${owner} repo:${repo}`);
 
     const octokit = github.getOctokit(token);
@@ -30,16 +32,37 @@ async function run() {
 
     const compare = await octokit.repos.compareCommits(
       {owner, repo, base, head});
-    console.log('compare:', JSON.stringify(compare));
 
+    let comments = [];
     for (let f of compare.data.files) {
-      console.log(f)
+      console.log(`file ${f.status}: ${f.filename}`);
+      filename = f.filename.replace(/^src\//, '');
+      if (f.status === 'added' && codeowners.indexOf(filename) < 0) {
+        comments.push({
+          path: f.filename,
+          position: 0,
+          body: '',
+        });
+      }
     }
+    console.log('comments:', JSON.stringify(comments));
 
-    /*
-    payload.pull_request.base.ref == 'sidekick'
-    payload.pull_request.head.ref == 'INFRA-3075'
-    */
+    if (comments.length > 0) {
+      try {
+        await github.pulls.createReview(
+          {owner, repo, pull_number, event: 'REQUEST_CHANGES',
+           comments: comments, body: ''})
+      } catch (e) {
+        console.error('Error when requesting review:', e)
+      }
+    } else {
+      try {
+        await github.pulls.createReview(
+          {owner, repo, pull_number, event: 'APPROVE'})
+      } catch (e) {
+        console.error('Error when approving review:', e)
+      }
+    }
 
   } catch (error) {
     core.setFailed(error.message);
