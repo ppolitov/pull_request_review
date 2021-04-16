@@ -45,11 +45,11 @@ async function run() {
         });
       }
     }
-    console.log('comments:', JSON.stringify(comments));
 
     let oldComments = []
     const { reviews } = await octokit.pulls.listReviews(
       {owner, repo, pull_number})
+    console.log('reviews:', reviews);
     if (reviews && reviews.length > 0) {
       await Promise.all(reviews.map(async (review) => {
         console.log(`review by ${review.user.login}: ${review.id}`);
@@ -60,13 +60,15 @@ async function run() {
         }
       }))
     }
-    console.log('Old comments:', JSON.stringify(oldComments))
+    console.log('Old comments:', JSON.stringify(oldComments));
 
     const newComments = comments.filter(comment =>
       !oldComments.some(old =>
         old.position === comment.position &&
         old.path === comment.path &&
         old.body === comment.body))
+
+    console.log('New comments:', JSON.stringify(newComments));
 
     if (newComments.length > 0) {
       try {
