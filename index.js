@@ -56,8 +56,10 @@ async function run() {
         }
       }))
     }
+    /*
     console.log('Old comments:', JSON.stringify(
       oldComments.map(({path, position, body}) => ({path, position, body}))));
+    */
 
     const newComments = comments.filter(comment =>
       !oldComments.some(old =>
