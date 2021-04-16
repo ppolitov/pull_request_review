@@ -19,8 +19,6 @@ async function run() {
     const head = payload.pull_request.head.sha;
     const base = payload.pull_request.base.sha;
     const branch = payload.pull_request.head.ref;
-    // payload.pull_request.base.ref == 'sidekick'
-    // payload.pull_request.head.ref == 'INFRA-3075'
     console.log(`Inputs: pull:${pull_number} owner:${owner} repo:${repo}`);
 
     const octokit = github.getOctokit(token);
@@ -77,7 +75,7 @@ async function run() {
       } catch (e) {
         console.error('Error when requesting review:', e)
       }
-    } else {
+    } else if (comments.length === 0) {
       try {
         await octokit.pulls.createReview(
           {owner, repo, pull_number, event: 'APPROVE'})
