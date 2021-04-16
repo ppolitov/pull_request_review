@@ -49,7 +49,6 @@ async function run() {
       {owner, repo, pull_number})
     if (reviews && reviews.length > 0) {
       await Promise.all(reviews.map(async (review) => {
-        console.log(`review by ${review.user.login}: ${review.id}`);
         if (review && review.user.login.indexOf('github-actions') === 0) {
           const { data: cc } = await octokit.pulls.listCommentsForReview(
             {owner, repo, pull_number, review_id: review.id})
@@ -57,7 +56,8 @@ async function run() {
         }
       }))
     }
-    console.log('Old comments:', JSON.stringify(oldComments));
+    console.log('Old comments:', JSON.stringify(
+      oldComments.map(({path, position, body}) => ({path, position, body}))));
 
     const newComments = comments.filter(comment =>
       !oldComments.some(old =>
