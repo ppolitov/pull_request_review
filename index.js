@@ -47,9 +47,30 @@ async function run() {
     }
     console.log('comments:', JSON.stringify(comments));
 
-    if (comments.length > 0) {
+    let oldComments = []
+    const { reviews } = await github.pulls.listReviews(
+      {owner, repo, pull_number})
+    if (reviews && reviews.length > 0) {
+      await Promise.all(reviews.map(async (review) => {
+        if (review && review.user.login.indexOf('github-actions') === 0) {
+          const { cc } = await github.pulls.listCommentsForReview(
+            {owner, repo, pull_number, review_id: review.id})
+          oldComments.push(...cc)
+        }
+      }))
+    }
+    console.log('Old comments:', JSON.stringify(oldComments))
+
+    const newComments = comments.filter(comment =>
+      !oldComments.some(old =>
+        old.position === comment.position &&
+        old.path === comment.path &&
+        old.body === comment.body))
+
+
+    if (newComments.length > 0) {
       try {
-        await github.pulls.createReview(
+        await octokit.pulls.createReview(
           {owner, repo, pull_number, event: 'REQUEST_CHANGES',
            comments: comments, body: ''})
       } catch (e) {
