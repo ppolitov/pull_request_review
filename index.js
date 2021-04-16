@@ -49,12 +49,11 @@ async function run() {
     let oldComments = []
     const { data: reviews } = await octokit.pulls.listReviews(
       {owner, repo, pull_number})
-    console.log('reviews:', reviews);
     if (reviews && reviews.length > 0) {
       await Promise.all(reviews.map(async (review) => {
         console.log(`review by ${review.user.login}: ${review.id}`);
         if (review && review.user.login.indexOf('github-actions') === 0) {
-          const { cc } = await octokit.pulls.listCommentsForReview(
+          const { data: cc } = await octokit.pulls.listCommentsForReview(
             {owner, repo, pull_number, review_id: review.id})
           oldComments.push(...cc)
         }
