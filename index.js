@@ -48,12 +48,12 @@ async function run() {
     console.log('comments:', JSON.stringify(comments));
 
     let oldComments = []
-    const { reviews } = await github.pulls.listReviews(
+    const { reviews } = await octokit.pulls.listReviews(
       {owner, repo, pull_number})
     if (reviews && reviews.length > 0) {
       await Promise.all(reviews.map(async (review) => {
         if (review && review.user.login.indexOf('github-actions') === 0) {
-          const { cc } = await github.pulls.listCommentsForReview(
+          const { cc } = await octokit.pulls.listCommentsForReview(
             {owner, repo, pull_number, review_id: review.id})
           oldComments.push(...cc)
         }
@@ -78,7 +78,7 @@ async function run() {
       }
     } else {
       try {
-        await github.pulls.createReview(
+        await octokit.pulls.createReview(
           {owner, repo, pull_number, event: 'APPROVE'})
       } catch (e) {
         console.error('Error when approving review:', e)
