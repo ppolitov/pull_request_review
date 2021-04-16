@@ -25,7 +25,7 @@ async function run() {
     const { data: pulls } = await octokit.pulls.list({owner, repo});
 
     const response = await octokit.repos.getContent(
-      {owner, repo, path: 'src/CODEOWNERS', ref: github.context.ref});
+      {owner, repo, path: 'CODEOWNERS', ref: github.context.ref});
     const codeowners = Buffer.from(response.data.content, 'base64').toString();
 
     const compare = await octokit.repos.compareCommits(
@@ -34,8 +34,7 @@ async function run() {
     let comments = [];
     for (let f of compare.data.files) {
       console.log(`file ${f.status}: ${f.filename}`);
-      filename = f.filename.replace(/^src\//, '');
-      if (f.status === 'added' && codeowners.indexOf(filename) < 0) {
+      if (f.status === 'added' && codeowners.indexOf(f.filename) < 0) {
         comments.push({
           path: f.filename,
           position: 1,
@@ -56,10 +55,8 @@ async function run() {
         }
       }))
     }
-    /*
     console.log('Old comments:', JSON.stringify(
       oldComments.map(({path, position, body}) => ({path, position, body}))));
-    */
 
     const newComments = comments.filter(comment =>
       !oldComments.some(old =>
