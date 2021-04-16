@@ -47,7 +47,7 @@ async function run() {
     }
 
     let oldComments = []
-    const { reviews } = await octokit.pulls.listReviews(
+    const { data: reviews } = await octokit.pulls.listReviews(
       {owner, repo, pull_number})
     console.log('reviews:', reviews);
     if (reviews && reviews.length > 0) {
