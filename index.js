@@ -40,8 +40,8 @@ async function run() {
       if (f.status === 'added' && codeowners.indexOf(filename) < 0) {
         comments.push({
           path: f.filename,
-          position: 0,
-          body: '',
+          position: 1,
+          body: 'Please add new files to CODEOWNERS',
         });
       }
     }
