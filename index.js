@@ -22,8 +22,6 @@ async function run() {
     console.log(`Inputs: pull:${pull_number} owner:${owner} repo:${repo}`);
 
     const octokit = github.getOctokit(token);
-    const { data: pulls } = await octokit.pulls.list({owner, repo});
-
     const response = await octokit.repos.getContent(
       {owner, repo, path: 'CODEOWNERS', ref: github.context.ref});
     const codeowners = Buffer.from(response.data.content, 'base64').toString();
@@ -43,38 +41,40 @@ async function run() {
       }
     }
 
-    let oldComments = []
-    const { data: reviews } = await octokit.pulls.listReviews(
-      {owner, repo, pull_number})
-    if (reviews && reviews.length > 0) {
-      await Promise.all(reviews.map(async (review) => {
-        if (review && review.user.login.indexOf('github-actions') === 0) {
-          const { data: cc } = await octokit.pulls.listCommentsForReview(
-            {owner, repo, pull_number, review_id: review.id})
-          oldComments.push(...cc)
-        }
-      }))
-    }
-    console.log('Old comments:', JSON.stringify(
-      oldComments.map(({path, position, body}) => ({path, position, body}))));
-
-    const newComments = comments.filter(comment =>
-      !oldComments.some(old =>
-        old.position === comment.position &&
-        old.path === comment.path &&
-        old.body === comment.body))
-
-    console.log('New comments:', JSON.stringify(newComments));
-
-    if (newComments.length > 0) {
-      try {
-        await octokit.pulls.createReview(
-          {owner, repo, pull_number, event: 'REQUEST_CHANGES',
-           comments: comments, body: ''})
-      } catch (e) {
-        console.error('Error when requesting review:', e)
+    if (comments.length > 0) {
+      let oldComments = []
+      const { data: reviews } = await octokit.pulls.listReviews(
+        {owner, repo, pull_number})
+      if (reviews && reviews.length > 0) {
+        await Promise.all(reviews.map(async (review) => {
+          if (review && review.user.login.indexOf('github-actions') === 0) {
+            const { data: cc } = await octokit.pulls.listCommentsForReview(
+              {owner, repo, pull_number, review_id: review.id})
+            oldComments.push(...cc)
+          }
+        }))
       }
-    } else if (comments.length === 0) {
+      console.log('Old comments:', JSON.stringify(
+        oldComments.map(({path, position, body}) => ({path, position, body}))));
+
+      const newComments = comments.filter(comment =>
+        !oldComments.some(old =>
+          old.position === comment.position &&
+          old.path === comment.path &&
+          old.body === comment.body))
+
+      console.log('New comments:', JSON.stringify(newComments));
+
+      if (newComments.length > 0) {
+        try {
+          await octokit.pulls.createReview(
+            {owner, repo, pull_number, event: 'REQUEST_CHANGES',
+             comments: comments, body: ''})
+        } catch (e) {
+          console.error('Error when requesting review:', e)
+        }
+      }
+    } else {
       try {
         await octokit.pulls.createReview(
           {owner, repo, pull_number, event: 'APPROVE'})
