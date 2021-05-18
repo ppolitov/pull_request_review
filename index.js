@@ -27,7 +27,8 @@ async function run() {
       {owner, repo, path: 'CODEOWNERS', ref: github.context.ref});
     let codeowners = Buffer.from(response.data.content, 'base64').toString();
     if (codeowners.length > 0) {
-      codeowners = codeowners.filter(line => line[0] !== '#' && line !== '')
+      codeowners = codeowners.split('\n')
+                             .filter(line => line[0] !== '#' && line !== '')
                              .map(line => line.slice(1, line.indexOf(' ')));
     }
 
