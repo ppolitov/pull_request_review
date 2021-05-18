@@ -37,9 +37,10 @@ async function run() {
 
     const files = compare.data.files.filter(f => f.status === 'added')
                                     .map(f => f.filename);
-    console.log('Added files:', files.join('\n'));
+    console.log('Added files:\n', files.join('\n'));
 
     const missingFiles = micromatch.not(files, codeowners);
+    console.log('Files missing in owners:\n', missingFiles.join('\n'));
 
     let comments = [];
     for (let path of missingFiles) {
