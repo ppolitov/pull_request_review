@@ -1,5 +1,6 @@
-const core = require('@actions/core')
-const github = require('@actions/github')
+const core = require('@actions/core');
+const github = require('@actions/github');
+const micromatch = require('micromatch');
 
 /**
  * @param {number} ms
@@ -24,21 +25,28 @@ async function run() {
     const octokit = github.getOctokit(token);
     const response = await octokit.repos.getContent(
       {owner, repo, path: 'CODEOWNERS', ref: github.context.ref});
-    const codeowners = Buffer.from(response.data.content, 'base64').toString();
+    let codeowners = Buffer.from(response.data.content, 'base64').toString();
+    if (codeowners.length > 0) {
+      codeowners = codeowners.filter(line => line[0] !== '#' && line !== '')
+                             .map(line => line.slice(1, line.indexOf(' ')));
+    }
 
     const compare = await octokit.repos.compareCommits(
       {owner, repo, base, head});
 
+    const files = compare.data.files.filter(f => f.status === 'added')
+                                    .map(f => f.filename);
+    console.log('Added files:', files.join('\n'));
+
+    const missingFiles = micromatch.not(files, codeowners);
+
     let comments = [];
-    for (let f of compare.data.files) {
-      console.log(`file ${f.status}: ${f.filename}`);
-      if (f.status === 'added' && codeowners.indexOf(f.filename) < 0) {
-        comments.push({
-          path: f.filename,
-          position: 1,
-          body: 'Please add new files to CODEOWNERS',
-        });
-      }
+    for (let path of missingFiles) {
+      comments.push({
+        path,
+        position: 1,
+        body: 'Please add new files to CODEOWNERS',
+      });
     }
 
     if (comments.length > 0) {
