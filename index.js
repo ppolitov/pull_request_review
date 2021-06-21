@@ -16,6 +16,7 @@ async function run() {
 
     const { payload } = github.context;
     const [owner, repo] = (process.env.GITHUB_REPOSITORY || '').split('/');
+    console.log('payload:', JSON.stringify(payload));
     const pull_number = payload.pull_request.number;
     const head = payload.pull_request.head.sha;
     const base = payload.pull_request.base.sha;
